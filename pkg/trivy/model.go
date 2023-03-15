@@ -6,6 +6,95 @@ import (
 
 const SchemaVersion = 2
 
+type LicenseScanReport struct {
+	SchemaVersion            int    `json:"SchemaVersion"`
+	ArtifactName             string `json:"ArtifactName"`
+	ArtifactType             string `json:"ArtifactType"`
+	MetadataMisconfiguration `json:"Metadata"`
+	Result                   []Results `json:"Results"`
+}
+
+type MetadataMisconfiguration struct {
+	OS       `json:"OS"`
+	RepoTags []RepoTags `json:"RepoTags"`
+}
+
+type OS struct {
+	Family string `json:"Family"`
+	Name   string `json:"Name"`
+}
+type RepoTags string
+
+type Results struct {
+	Target       string              `json:"Target"`
+	Class        string              `json:"Class"`
+	Type         string              `json:"Type"`
+	MisconfigSum MisconfSummary      `json:"MisconfSummary"`
+	Misconf      []Misconfigurations `json:"Misconfigurations"`
+	License      []License           `json:"Licenses"`
+}
+
+type License struct {
+	Severity   string `json:"Severity"`
+	Category   string `json:"Category"`
+	PkgName    string `json:"PkgName"`
+	FilePath   string `json:"FilePath"`
+	Name       string `json:"Name"`
+	Confidence int    `json:"Confidence"`
+	Link       string `json:"Link"`
+}
+
+type MisconfSummary struct {
+	Successes  int `json:"Successes"`
+	Failures   int `json:"Failures"`
+	Exceptions int `json:"Exceptions"`
+}
+
+type Misconfigurations struct {
+	Type        string        `json:"Link"`
+	ID          string        `json:"Link"`
+	AVDID       string        `json:"Link"`
+	Title       string        `json:"Link"`
+	Description string        `json:"Link"`
+	Message     string        `json:"Link"`
+	Namespace   string        `json:"Link"`
+	Query       string        `json:"Link"`
+	Resolution  string        `json:"Link"`
+	Severity    string        `json:"Link"`
+	PrimaryURL  string        `json:"Link"`
+	Reference   []Reference   `json:"Link"`
+	Status      string        `json:"Link"`
+	Layer       ImageLayer    `json:"Layer"`
+	Cause       CauseMetadata `json:"CauseMetadata"`
+}
+
+type Reference string
+
+type ImageLayer struct {
+	DiffID string `json:"DiffID"`
+}
+
+type CauseMetadata struct {
+	Provider  string `json:"Provider"`
+	Service   string `json:"Service"`
+	StartLine int    `json:"Startline"`
+	EndLine   int    `json:"EndLine"`
+	Code      Code   `json:"Code"`
+}
+type Code struct {
+	Lines []Lines `json:"Lines"`
+}
+
+type Lines struct {
+	Number     int    `json:"Number"`
+	Content    string `json:"Content"`
+	IsCause    bool   `json:"IsCause"`
+	Annotation string `json:"Annotation"`
+	Truncated  bool   `json:"Truncated"`
+	FirstCause bool   `json:"FirstCause"`
+	LastCause  bool   `json:"LastCause"`
+}
+
 type ScanReport struct {
 	SchemaVersion int
 	Results       []ScanResult `json:"Results"`

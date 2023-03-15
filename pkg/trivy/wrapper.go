@@ -65,10 +65,10 @@ func (w *wrapper) Scan(imageRef ImageRef) ([]Vulnerability, error) {
 	log.WithField("path", reportFile.Name()).Debug("Saving scan report to tmp file")
 	defer func() {
 		log.WithField("path", reportFile.Name()).Debug("Removing scan report tmp file")
-		err := w.ambassador.Remove(reportFile.Name())
-		if err != nil {
-			log.WithError(err).Warn("Error while removing scan report tmp file")
-		}
+		//err := w.ambassador.Remove(reportFile.Name())
+		//if err != nil {
+		//	log.WithError(err).Warn("Error while removing scan report tmp file")
+		//}
 	}()
 
 	cmd, err := w.prepareScanCmd(imageRef, reportFile.Name())
@@ -94,11 +94,13 @@ func (w *wrapper) Scan(imageRef ImageRef) ([]Vulnerability, error) {
 		"std_out":   string(stdout),
 	}).Debug("Running trivy finished")
 
+	// No sure why the tmp file needs to be created manually in advanced.
 	return w.parseVulnerabilities(reportFile)
 }
 
 func (w *wrapper) parseVulnerabilities(reportFile io.Reader) ([]Vulnerability, error) {
-	var scanReport ScanReport
+	//var scanReport ScanReport
+	var scanReport LicenseScanReport
 	err := json.NewDecoder(reportFile).Decode(&scanReport)
 	if err != nil {
 		return nil, fmt.Errorf("decoding scan report from file: %w", err)
@@ -108,24 +110,41 @@ func (w *wrapper) parseVulnerabilities(reportFile io.Reader) ([]Vulnerability, e
 		return nil, fmt.Errorf("unsupported schema %d, expected %d", scanReport.SchemaVersion, SchemaVersion)
 	}
 
-	var vulnerabilities []Vulnerability
-	for _, scanResult := range scanReport.Results {
-		log.WithField("target", scanResult.Target).Trace("Parsing vulnerabilities")
-		vulnerabilities = append(vulnerabilities, scanResult.Vulnerabilities...)
-	}
+	//var vulnerabilities []Vulnerability
+	//for _, scanResult := range scanReport.Results {
+	//	log.WithField("target", scanResult.Target).Trace("Parsing vulnerabilities")
+	//	vulnerabilities = append(vulnerabilities, scanResult.Vulnerabilities...)
+	//}
 
-	return vulnerabilities, nil
+	//return vulnerabilities, nil
+	return nil, nil
 }
 
 func (w *wrapper) prepareScanCmd(imageRef ImageRef, outputFile string) (*exec.Cmd, error) {
+	//args := []string{
+	//	//"--no-progress",
+	//	"--severity", w.config.Severity,
+	//	"--vuln-type", w.config.VulnType,
+	//	"--format", "json",
+	//	"--output", outputFile,
+	//	imageRef.Name,
+	//}
+
 	args := []string{
-		"--no-progress",
+		//"--no-progress",
+		"--scanners", "license,config",
 		"--severity", w.config.Severity,
-		"--vuln-type", w.config.VulnType,
 		"--format", "json",
 		"--output", outputFile,
-		imageRef.Name,
-	}
+		imageRef.Name}
+
+	//args := []string{
+	//	"--no-progress",
+	//	"--scanners", "license",
+	//	"--severity", w.config.Severity,
+	//	"--format", "json",
+	//	"--output", outputFile,
+	//	imageRef.Name}
 
 	if w.config.IgnoreUnfixed {
 		args = append([]string{"--ignore-unfixed"}, args...)
@@ -158,6 +177,7 @@ func (w *wrapper) prepareScanCmd(imageRef ImageRef, outputFile string) (*exec.Cm
 	args = append(globalArgs, args...)
 
 	cmd := exec.Command(name, args...)
+	//cmd := exec.Command(name, "--version")
 
 	cmd.Env = w.ambassador.Environ()
 
