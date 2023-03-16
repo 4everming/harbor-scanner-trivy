@@ -2,7 +2,11 @@ package trivy
 
 import (
 	"time"
+
+	trivy "github.com/aquasecurity/trivy/pkg/types"
 )
+
+var report trivy.Report
 
 const SchemaVersion = 2
 

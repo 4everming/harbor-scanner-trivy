@@ -9,6 +9,7 @@ import (
 
 	"github.com/aquasecurity/harbor-scanner-trivy/pkg/etc"
 	"github.com/aquasecurity/harbor-scanner-trivy/pkg/ext"
+	trivy "github.com/aquasecurity/trivy/pkg/types"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -99,8 +100,8 @@ func (w *wrapper) Scan(imageRef ImageRef) ([]Vulnerability, error) {
 }
 
 func (w *wrapper) parseVulnerabilities(reportFile io.Reader) ([]Vulnerability, error) {
-	//var scanReport ScanReport
-	var scanReport LicenseScanReport
+	var scanReport trivy.Report
+
 	err := json.NewDecoder(reportFile).Decode(&scanReport)
 	if err != nil {
 		return nil, fmt.Errorf("decoding scan report from file: %w", err)
@@ -132,7 +133,7 @@ func (w *wrapper) prepareScanCmd(imageRef ImageRef, outputFile string) (*exec.Cm
 
 	args := []string{
 		//"--no-progress",
-		"--scanners", "license,config",
+		"--scanners", "license,config,vuln",
 		"--severity", w.config.Severity,
 		"--format", "json",
 		"--output", outputFile,
